@@ -11,18 +11,19 @@ between the two, while the operator still screens depositors at the entrance.
 The primitive is a **Chaum blind signature over BLS12-381**, not a ZK proof —
 there is no circuit, no trusted setup, no Merkle tree. It is a port of the
 `../nozkash` EVM vault; `SEP-DRAFT.md` is the standards proposal that came out
-of it. Not a git repository.
+of it. `docs/` holds the architecture write-up and the frontend integration
+guide — both are judged deliverables, so keep them true rather than tidy.
 
 ## Commands
 
 ```bash
-cargo test                                  # 47 contract tests (Rust)
+cargo test                                  # 50 contract tests (Rust)
 cargo test full_lifecycle_pays_recipient    # one test by name
 cargo test test_vectors::                   # only the cross-language parity tests
 stellar contract build                      # → target/wasm32v1-none/release/cpp_vault.wasm
 
 npm --prefix ts install
-npm --prefix ts test                        # vitest, 47 client tests
+npm --prefix ts test                        # vitest, 66 client tests
 npm --prefix ts test -- events              # one file
 npm --prefix ts test -- -t "clamps a start ledger"   # one test by name
 npm --prefix ts run typecheck               # tsc --noEmit

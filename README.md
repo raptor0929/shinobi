@@ -9,7 +9,11 @@ a translation: Soroban's BLS12-381 host functions make it **smaller, cheaper,
 and simpler than the original**, and that is the point of the proposal in
 [`SEP-DRAFT.md`](./SEP-DRAFT.md).
 
-Status: working end-to-end on testnet. 47 Rust tests, 46 TypeScript tests.
+Status: working end-to-end on testnet. 50 Rust tests, 66 TypeScript tests.
+
+Design notes and diagrams live in [`docs/architecture.md`](./docs/architecture.md);
+building a UI on top of a deployed vault is covered in
+[`docs/frontend-integration.md`](./docs/frontend-integration.md).
 
 ---
 
@@ -79,7 +83,7 @@ contracts/vault/src/
   crypto.rs        DST, domain tags, G2 generator, pairing verification
   storage.rs       instance/persistent keys and TTL bumping
   event.rs         the four events a wallet needs to recover from chain
-  test.rs          47 unit tests
+  test.rs          39 unit tests
   test_vectors.rs  cross-language parity: TS-generated tokens, replayed in Rust
   vectors.rs       GENERATED — do not edit (npm run vectors -- --rust)
 
@@ -90,7 +94,12 @@ ts/src/
   client.ts        CLI: init, deposit, scan, status, redeem, refund, recover
   mint.ts          the mint daemon: watch → screen → blind-sign → announce
   screening.ts     denylist / allowlist / risk-API providers + policy engine
+  sponsor.ts       creates recipient accounts under one shared sponsor key
   vectors.ts       test-vector generator (source of truth for vectors.rs)
+
+docs/
+  architecture.md          components, lifecycle, trust boundaries, diagrams
+  frontend-integration.md  building a web UI against a deployed vault
 ```
 
 ### Testing strategy worth knowing about
