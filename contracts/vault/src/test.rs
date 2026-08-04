@@ -9,7 +9,7 @@ use soroban_sdk::{
     Address, Bytes, BytesN, Env, IntoVal, U256,
 };
 
-use crate::{crypto, storage, Config, DepositStatus, Vault, VaultClient};
+use crate::{crypto, storage, Config, DepositStatus, Error, Vault, VaultClient};
 
 const DENOMINATION: i128 = 10_000_000; // 1 XLM in stroops
 
@@ -456,6 +456,37 @@ fn refund_returns_an_unsigned_deposit() {
 }
 
 #[test]
+fn refund_rejects_an_unknown_deposit() {
+    // An id nobody ever deposited under has no funded slot and no depositor to
+    // authorise the reclaim, so it fails on the status check before reaching
+    // the auth check. The vault is deliberately funded first: a bug that paid
+    // out on a missing slot would have something to drain.
+    let s = setup();
+    let depositor = s.funded_user(DENOMINATION);
+    let token = Token::new(&s.env, 0);
+    s.vault.deposit(
+        &depositor,
+        &token.deposit_id,
+        &token.blinded_b(&s.env),
+    );
+
+    let unknown: BytesN<32> = BytesN::from_array(&s.env, &[0xAB; 32]);
+    assert_eq!(
+        s.vault.try_refund(&unknown),
+        Err(Ok(Error::DepositNotFound.into())),
+    );
+
+    // The real deposit is untouched, and still refundable.
+    assert_eq!(s.token.balance(&s.vault.address), DENOMINATION);
+    assert_eq!(
+        s.vault.deposit_status(&token.deposit_id),
+        DepositStatus::Pending,
+    );
+    s.vault.refund(&token.deposit_id);
+    assert_eq!(s.token.balance(&depositor), DENOMINATION);
+}
+
+#[test]
 #[should_panic(expected = "Error(Contract, #4)")]
 fn refund_is_not_repeatable() {
     let s = setup();
@@ -503,6 +534,94 @@ fn refund_requires_the_depositor() {
 // ---------------------------------------------------------------------------
 // Redeem — negative paths
 // ---------------------------------------------------------------------------
+
+#[test]
+fn unannounced_deposit_cannot_be_redeemed() {
+    // The compliance gate has to actually gate. A deposit the mint never
+    // announced must not be withdrawable, and the enforcement is entirely the
+    // pairing check: `redeem` never sees a deposit_id, by design, so there is
+    // no state lookup tying a redemption back to its deposit. What stops the
+    // withdrawal is that without `S' = sk·B` the holder cannot construct an
+    // `S` that pairs against the mint key.
+    //
+    // The depositor here owns the token secrets and the funded slot — every
+    // input to `redeem` except the one the mint withholds.
+    let s = setup();
+    let depositor = s.funded_user(DENOMINATION);
+    let token = Token::new(&s.env, 0);
+    let b = token.blinded_b(&s.env);
+
+    s.vault.deposit(&depositor, &token.deposit_id, &b);
+    assert_eq!(
+        s.vault.deposit_status(&token.deposit_id),
+        DepositStatus::Pending,
+    );
+
+    let recipient = Address::generate(&s.env);
+    let sig = token.sign_redemption(&s.vault.redemption_message(&recipient));
+
+    // `Y = H(nullifier)` is the strongest forgery available without the mint:
+    // a well-formed prime-order G1 point, so it clears the on-curve and
+    // subgroup checks and fails on the pairing alone.
+    let y = token.y(&s.env).to_bytes();
+    assert_eq!(
+        s.vault.try_redeem(&recipient, &token.nullifier, &sig, &y),
+        Err(Ok(Error::InvalidBlindSignature.into())),
+    );
+
+    // The blinded point the mint was asked to sign is no better.
+    assert_eq!(
+        s.vault.try_redeem(&recipient, &token.nullifier, &sig, &b),
+        Err(Ok(Error::InvalidBlindSignature.into())),
+    );
+
+    // Nothing moved and nothing was consumed: the recipient was not paid, the
+    // vault still holds the deposit, and the nullifier is unburnt.
+    assert_eq!(s.token.balance(&recipient), 0);
+    assert_eq!(s.token.balance(&s.vault.address), DENOMINATION);
+    assert!(!s.vault.is_spent(&token.nullifier));
+
+    // A refused deposit is not a seized one — it is still Pending, so the
+    // depositor can reclaim it.
+    assert_eq!(
+        s.vault.deposit_status(&token.deposit_id),
+        DepositStatus::Pending,
+    );
+    s.vault.refund(&token.deposit_id);
+    assert_eq!(s.token.balance(&depositor), DENOMINATION);
+}
+
+#[test]
+fn deposit_becomes_redeemable_only_after_announce() {
+    // The positive half of the same property: the *only* thing that changes
+    // between the failing redemption above and a successful one is the mint's
+    // announce. Same token, same recipient, same spend signature.
+    let s = setup();
+    let depositor = s.funded_user(DENOMINATION);
+    let token = Token::new(&s.env, 0);
+    let b = token.blinded_b(&s.env);
+
+    s.vault.deposit(&depositor, &token.deposit_id, &b);
+
+    let recipient = Address::generate(&s.env);
+    let sig = token.sign_redemption(&s.vault.redemption_message(&recipient));
+
+    // Before announce, the holder cannot even compute a spendable `S`; the
+    // best they can offer is the blinded point.
+    assert_eq!(
+        s.vault.try_redeem(&recipient, &token.nullifier, &sig, &b),
+        Err(Ok(Error::InvalidBlindSignature.into())),
+    );
+
+    let s_prime = s.mint.blind_sign(&s.env, &b);
+    s.vault.announce(&token.deposit_id, &s_prime);
+    let unblinded_s = token.unblind(&s.env, &s_prime);
+
+    s.vault
+        .redeem(&recipient, &token.nullifier, &sig, &unblinded_s);
+    assert_eq!(s.token.balance(&recipient), DENOMINATION);
+    assert_eq!(s.token.balance(&s.vault.address), 0);
+}
 
 #[test]
 #[should_panic(expected = "Error(Contract, #7)")]
