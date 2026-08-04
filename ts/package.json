@@ -1,0 +1,26 @@
+{
+  "name": "@cpp/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Compliant Privacy Pool — crypto library, CLI wallet and compliance mint for Stellar",
+  "scripts": {
+    "client": "tsx src/client.ts",
+    "mint": "tsx src/mint.ts",
+    "mintkey": "tsx src/mintkey.ts",
+    "vectors": "tsx src/vectors.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@noble/curves": "^2.0.1",
+    "@noble/hashes": "^2.0.1",
+    "@stellar/stellar-sdk": "^14.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2",
+    "vitest": "^3.0.5"
+  }
+}
