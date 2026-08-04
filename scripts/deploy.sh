@@ -6,11 +6,17 @@
 #   ./scripts/deploy.sh --denom 50000000  5 XLM
 #   ./scripts/deploy.sh --seed <64-hex>   reuse an existing mint seed
 #
-# Creates three identities so the demo can show what the chain does and does not
-# link: `cpp-mint` signs `announce`, `cpp-alice` deposits, and `cpp-relayer`
-# submits redemptions. Alice and the relayer are unrelated accounts, which is
-# the point — the account that pays for a redemption proves nothing about who
-# owns the token.
+# Creates four identities so the demo can show what the chain does and does not
+# link: `cpp-mint` signs `announce`, `cpp-alice` deposits, `cpp-relayer` submits
+# redemptions, and `cpp-sponsor` creates the accounts redemptions pay into.
+# Alice and the relayer are unrelated accounts, which is the point — the account
+# that pays for a redemption proves nothing about who owns the token.
+#
+# These four are operator accounts, provisioned once and openly. Friendbot is
+# fine for them: they are *meant* to be identifiable, and on mainnet you would
+# fund them out of band. It is the per-redemption *recipient* accounts that must
+# not be traceable to a depositor, which is why those go through `cpp-sponsor`
+# (see ts/src/sponsor.ts) instead.
 
 set -euo pipefail
 
@@ -40,7 +46,7 @@ stellar --version | head -1
 node --version
 
 say "Creating and funding identities on $NETWORK"
-for name in cpp-mint cpp-alice cpp-relayer; do
+for name in cpp-mint cpp-alice cpp-relayer cpp-sponsor; do
   if ! stellar keys address "$name" >/dev/null 2>&1; then
     stellar keys generate "$name" --network "$NETWORK" --fund
     echo "  generated $name"
@@ -55,6 +61,7 @@ done
 MINT_ADDRESS="$(stellar keys address cpp-mint)"
 ALICE_ADDRESS="$(stellar keys address cpp-alice)"
 RELAYER_ADDRESS="$(stellar keys address cpp-relayer)"
+SPONSOR_ADDRESS="$(stellar keys address cpp-sponsor)"
 
 say "Deriving the mint's BLS12-381 key"
 if [[ -z "$MINT_SEED" ]]; then
@@ -108,6 +115,10 @@ CPP_DENYLIST_FILE=scripts/denylist.json
 # Demo accounts.
 DEPOSITOR_SECRET=$(stellar keys secret cpp-alice)
 SUBMITTER_SECRET=$(stellar keys secret cpp-relayer)
+
+# Puts up the base reserve for every recipient account a redemption pays into.
+# One shared sponsor, never the depositor — see ts/src/sponsor.ts.
+SPONSOR_SECRET=$(stellar keys secret cpp-sponsor)
 EOF
 chmod 600 .env
 
@@ -119,6 +130,7 @@ cat <<EOF
   mint         $MINT_ADDRESS
   alice        $ALICE_ADDRESS
   relayer      $RELAYER_ADDRESS
+  sponsor      $SPONSOR_ADDRESS
 
 Next:
   1. start the mint:   npm --prefix ts run mint

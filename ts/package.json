@@ -8,6 +8,7 @@
     "client": "tsx src/client.ts",
     "mint": "tsx src/mint.ts",
     "mintkey": "tsx src/mintkey.ts",
+    "sponsor": "tsx src/sponsor.ts",
     "vectors": "tsx src/vectors.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

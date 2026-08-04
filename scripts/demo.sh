@@ -35,12 +35,20 @@ $CLIENT status 2>/dev/null || true
 say "Creating a fresh recipient"
 # A brand-new account with no history. If the pool works, it ends up funded by
 # a vault it never touched, from a depositor it has no on-chain relationship to.
-RECIPIENT_NAME="cpp-recipient-$(date +%s)"
-stellar keys generate "$RECIPIENT_NAME" --network "$NETWORK" --fund >/dev/null
-RECIPIENT="$(stellar keys address "$RECIPIENT_NAME")"
+#
+# Created under `cpp-sponsor`, not friendbot and emphatically not Alice. The
+# account that puts up a new account's base reserve is written onto that account
+# permanently, so letting the depositor create their own recipient would publish
+# the depositor -> recipient edge that the blind signature exists to remove. One
+# shared sponsor on every recipient distinguishes none of them.
+RECIPIENT="$(npm --prefix ts run --silent sponsor -- --quiet)"
 note "$RECIPIENT"
+note "sponsored by $(stellar keys address cpp-sponsor), starting balance 0"
+# Read-only simulation, but sourced from the sponsor rather than Alice: the
+# sponsor is already tied to this account by construction, so naming it here
+# cannot leak anything that is not already on chain.
 BEFORE="$(stellar contract invoke --id "$(stellar contract id asset --asset native --network "$NETWORK")" \
-  --source cpp-alice --network "$NETWORK" -- balance --id "$RECIPIENT" 2>/dev/null || echo '"0"')"
+  --source cpp-sponsor --network "$NETWORK" -- balance --id "$RECIPIENT" 2>/dev/null || echo '"0"')"
 note "balance before: $BEFORE stroops"
 
 say "Initialising Alice's wallet"
@@ -70,16 +78,27 @@ $CLIENT redeem "$RECIPIENT"
 
 say "Result"
 AFTER="$(stellar contract invoke --id "$(stellar contract id asset --asset native --network "$NETWORK")" \
-  --source cpp-alice --network "$NETWORK" -- balance --id "$RECIPIENT" 2>/dev/null || echo '"0"')"
+  --source cpp-sponsor --network "$NETWORK" -- balance --id "$RECIPIENT" 2>/dev/null || echo '"0"')"
 note "balance after: $AFTER stroops"
 
 cat <<EOF
 
-The recipient was paid. On chain there are two unlinked facts:
+The recipient was paid. On chain there are three unlinked facts:
 
+  create    base reserve     by   $(stellar keys address cpp-sponsor)
   deposit   deposit_id + B   from $(stellar keys address cpp-alice)
   redeem    nullifier  + S   to   $RECIPIENT
 
+Alice appears on the deposit and nowhere else. The redemption was submitted and
+paid for by cpp-relayer; the recipient account was created by cpp-sponsor. Both
+are constants across every cycle, so neither says which deposit this payout came
+from — that is what makes them safe to reuse, and what would make Alice unsafe
+in either role.
+
 The mint's audit log (.cpp/mint-audit.jsonl) records that Alice was screened
 and admitted. It does not — and cannot — record where her token was spent.
+
+Caveat worth reading: this pool's anonymity set is the number of deposits
+outstanding when you redeem. Two deposits and two redemptions minutes apart pair
+up by timing no matter how good the cryptography is.
 EOF

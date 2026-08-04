@@ -113,8 +113,8 @@ Prerequisites: Rust with `wasm32v1-none`, `stellar` CLI 22+, Node 22+.
 
 ```bash
 npm --prefix ts install
-cargo test                  # 47 contract tests
-npm --prefix ts test        # 46 client tests
+cargo test                  # 50 contract tests
+npm --prefix ts test        # 57 client tests
 ```
 
 ### Deploy to testnet
@@ -123,8 +123,8 @@ npm --prefix ts test        # 46 client tests
 ./scripts/deploy.sh
 ```
 
-This creates and funds three identities (`cpp-mint`, `cpp-alice`,
-`cpp-relayer`), derives the mint's BLS keypair from `MINT_SEED`, resolves the
+This creates and funds four identities (`cpp-mint`, `cpp-alice`, `cpp-relayer`,
+`cpp-sponsor`), derives the mint's BLS keypair from `MINT_SEED`, resolves the
 native XLM SAC, builds, deploys with constructor arguments, and writes `.env`
 with mode 0600. Denomination defaults to 1 XLM.
 
@@ -149,6 +149,39 @@ The `redeem` call takes **no `require_auth`** — the token authorises itself. T
 submitter pays the fee and can be a relayer with no relationship to either side,
 which is what keeps the fee-payer from becoming the link that the blinding
 removed.
+
+### Creating the account that gets paid
+
+A redemption pays a Stellar address, and that address has to exist first.
+Whoever creates it is recorded on it permanently — as the `create_account`
+source, and as `sponsoringID` on the account entry. Account creation is
+therefore a privacy decision, not plumbing:
+
+```bash
+npm --prefix ts run sponsor            # create one, print its address
+npm --prefix ts run sponsor -- --quiet # address only, for scripts
+```
+
+`SPONSOR_SECRET` puts up the base reserve through
+`begin_sponsoring_future_reserves` / `create_account` (starting balance `0`) /
+`end_sponsoring_future_reserves`. Two rules make it work:
+
+- **One shared sponsor.** A sponsor that appears on every recipient distinguishes
+  none of them, so it carries no information about which deposit any given
+  payout came from.
+- **Never the depositor.** A depositor who creates their own recipient publishes
+  a direct depositor → recipient edge, which is exactly the link the blind
+  signature removes. `sponsor` refuses to run in that configuration rather than
+  leaving it to an operator to notice.
+
+Testnet's friendbot satisfies the first rule by accident and has no mainnet
+equivalent, which is why the demo no longer uses it. Secrets of created accounts
+are appended to `.cpp/sponsored-accounts.jsonl` (mode 0600) so the sponsor can
+reclaim the reserves; lose that file and the reserves are stranded.
+
+Known gap: this creates the account and nothing more. A vault denominated in a
+**non-native** asset would also need a sponsored trustline on the recipient
+before it could be paid. The demo vault is native XLM, which needs none.
 
 ### If the wallet file is lost
 

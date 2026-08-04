@@ -34,6 +34,7 @@ Live paths (need `stellar` CLI 22+ and a funded testnet identity):
 ./scripts/deploy.sh                 # identities, mint key, build, deploy, write .env (0600)
 npm --prefix ts run mint &          # daemon: watch → screen → blind-sign → announce
 ./scripts/demo.sh                   # full deposit → redeem cycle to a fresh account
+npm --prefix ts run sponsor         # create a recipient account under SPONSOR_SECRET
 npm --prefix ts run client -- {init|deposit|scan|status|redeem <G…>|refund --index n|recover}
 ```
 
@@ -126,3 +127,9 @@ the server no longer serves rather than erroring.
   accepting.
 - With no screening provider configured the mint allows everything and warns at
   startup. Fine for a demo, never for production.
+- Recipient accounts are created by `ts/src/sponsor.ts` under a single shared
+  `SPONSOR_SECRET`, never by the depositor and never by friendbot — whoever
+  creates an account is written onto it permanently, so a depositor-created
+  recipient publishes the link blinding removes. `assertSponsorIsNotDepositor`
+  enforces it. Non-native denominations would also need a sponsored trustline;
+  that is not implemented.
