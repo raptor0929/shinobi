@@ -1,0 +1,19 @@
+[package]
+name = "cpp-vault"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+# Used only to produce Ed25519 spend signatures inside tests. The BLS side of
+# the tests uses the Soroban host's own primitives, so the contract is checked
+# against exactly the arithmetic it will run in production.
+ed25519-dalek = "2.1.1"
