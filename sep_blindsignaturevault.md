@@ -2,14 +2,29 @@
 
 ```
 SEP: To Be Assigned
-Title: Compliant Privacy Pool (CPP)
-Author: TBD
-Track: Standard
+Title: Blind Signature Transfer Vault
+Author: Fabio Laura (@raptor0929)
 Status: Draft
 Created: 2026-08-04
+Updated: 2026-08-04
 Version: 0.1.0
-Discussion: TBD
+Discussion: <opened before submission at https://github.com/orgs/stellar/discussions>
 ```
+
+> **Editorial note, to be removed before submission.** The SEP number is left as
+> `To Be Assigned` deliberately: the ecosystem README instructs authors not to
+> self-assign, reference, or request one. This file is named `sep_blindsignaturevault.md`
+> per the `sep_{shorttitle}.md` draft convention, and `ecosystem/README.md` is
+> not to be edited in the submitting PR — a maintainer adds both the number and
+> the index row on merge. The `Discussion` link must be filled in with a real
+> GitHub Discussion URL before the PR is opened.
+>
+> The reference implementation is named **CPP (Compliant Privacy Pool)**. The
+> title here describes the interface rather than the implementation, following
+> the convention of SEP-1 (*Stellar Info File*) and SEP-41 (*Soroban Token
+> Interface*), and avoids "privacy pool", which is an established term of art
+> for the association-set and zero-knowledge design this proposal deliberately
+> does not use.
 
 ## Simple Summary
 
@@ -76,6 +91,21 @@ EVM version of this scheme and its only unbounded one.
 Stellar removes it entirely. A single host call replaces the loop, and the
 resulting contract is **smaller and cheaper than its EVM counterpart** — not a
 port that survived the transition, but one the platform makes better.
+
+### Prior art on Stellar
+
+This construction was proposed for Stellar in 2015. `stellar/stellar-protocol`
+issue [#19, "Anonymous transactions with blind signatures"][issue-19], opened in
+June 2015, sketched blind-signed transfers through a gateway in essentially the
+form specified here. It was labelled `needs draft`, never received one, and was
+closed in March 2019.
+
+Nothing was wrong with the idea; the platform could not carry it. There was no
+smart contract layer to hold the vault, and no host function to hash into a
+pairing-friendly group. CAP-59 supplies both halves of what was missing, and
+this document is the draft that issue never got.
+
+[issue-19]: https://github.com/stellar/stellar-protocol/issues/19
 
 ## Abstract
 
@@ -320,6 +350,38 @@ prove it did.
 CPP does not attempt to hide *amounts* or make deposits themselves private.
 Those are the properties a ZK system buys with its complexity. If an application
 needs them, it needs a different design.
+
+### Relationship to Confidential Tokens
+
+Stellar's [Confidential Tokens][ct] developer preview — a contract suite from
+OpenZeppelin with an UltraHonk verifier by Nethermind, announced July 2026 —
+wraps any SEP-41 token so that balances and transfer amounts are hidden as
+Pedersen commitments. It "hide[s] balances and transfer amounts while keeping
+sender and recipient addresses visible", and is aimed at known-counterparty
+settings: payroll, treasury, institutional settlement.
+
+That is the exact inverse of this proposal, and the two compose rather than
+compete:
+
+| | Confidential Tokens | This proposal |
+|---|---|---|
+| Amount | hidden | **fixed and public** |
+| Sender ↔ recipient link | **visible** | hidden |
+| Counterparties | known to each other | unknown to each other |
+| Mechanism | ZK proofs over commitments | blind signature, one pairing check |
+
+An application that needs both is not served by either alone. Neither is
+strictly more private than the other — they conceal different columns of the
+same ledger row, and which one matters is a question about the application, not
+about the cryptography.
+
+A separate community draft proposes zero-knowledge group-membership state on
+Soroban. That is the ZK-shaped route to the same unlinkability this document
+obtains from a blind signature, and carries the trade-offs tabulated above:
+richer policies expressible in a circuit, at the cost of a circuit to audit and
+a proof for every honest user to produce.
+
+[ct]: https://stellar.org/blog/developers/developer-preview-confidential-tokens-on-stellar
 
 ### Why BLS12-381 and not BN254
 

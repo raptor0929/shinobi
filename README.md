@@ -7,7 +7,9 @@ giving the operator a real compliance gate at the entrance.
 It is a port of the [nozkash](../nozkash) EVM vault to Stellar. The port is not
 a translation: Soroban's BLS12-381 host functions make it **smaller, cheaper,
 and simpler than the original**, and that is the point of the proposal in
-[`SEP-DRAFT.md`](./SEP-DRAFT.md).
+[`sep_blindsignaturevault.md`](./sep_blindsignaturevault.md) — a draft SEP,
+titled for the interface rather than for this implementation, and named per the
+`sep_{shorttitle}.md` convention the ecosystem repo expects from submissions.
 
 Status: working end-to-end on testnet. 50 Rust tests, 66 TypeScript tests.
 
