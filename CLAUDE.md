@@ -98,8 +98,12 @@ in `.cpp/mint-cursor.json`, screens the depositor through `ts/src/screening.ts`
 (providers compose with unanimous-allow, stop at first deny, risk API fails
 closed), calls `announce`, and appends every decision to `.cpp/mint-audit.jsonl`.
 The cursor advances only past ledgers genuinely scanned, so a crash replays
-rather than drops; replay is safe because `announce` rejects an already-announced
-deposit and the "no pending depositor entry" path catches the rest.
+rather than drops. The audit log doubles as the dedup store: `decidedDepositsFrom`
+seeds an in-memory set of ids that reached `allow`/`deny`, and `run` passes over
+those before `handleDeposit`. `skip` is never treated as terminal — a transient
+RPC failure is indistinguishable from a permanent one in the record, and
+suppressing the retry would strand a depositor. Append to the log *before*
+updating the set; the log is the durable copy.
 
 **Event pagination** (`ts/src/soroban.ts`). A single RPC `getEvents` scans only a
 bounded ledger window and returns a cursor whether or not it found anything, so

@@ -114,7 +114,7 @@ Prerequisites: Rust with `wasm32v1-none`, `stellar` CLI 22+, Node 22+.
 ```bash
 npm --prefix ts install
 cargo test                  # 50 contract tests
-npm --prefix ts test        # 57 client tests
+npm --prefix ts test        # 66 client tests
 ```
 
 ### Deploy to testnet
@@ -223,6 +223,16 @@ Every decision, allow or deny, is appended to `.cpp/mint-audit.jsonl`:
 {"depositId":"60883462…","depositor":"GBAI6UEO…","decision":"allow",
  "reason":"cleared denylist","provider":"policy","announceTx":"96a59123…"}
 ```
+
+That file is also what makes the daemon idempotent. Deposit events are
+delivered at-least-once on purpose — the poller re-scans the ledger each page
+ended on rather than risk advancing its cursor past events it never read — so
+the mint sees the same deposit again routinely, and again after any restart. At
+startup it rebuilds the set of deposits that already reached an `allow` or
+`deny` from the log itself, and passes over those without re-handling them. A
+`skip` is deliberately *not* treated as final: it means "not actionable right
+now", and a transient RPC failure is indistinguishable in the record from a
+permanent one, so those are always retried.
 
 ---
 
