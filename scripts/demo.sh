@@ -63,7 +63,16 @@ note "the mint is reading the deposit event, looking up Alice's address,"
 note "running it through the policy, and calling announce"
 for attempt in $(seq 1 20); do
   sleep 5
-  if $CLIENT scan 2>/dev/null | grep -q "ready"; then
+  $CLIENT scan >/dev/null 2>&1 || true
+  # Ask the wallet what it holds, rather than grepping what `scan` said.
+  # `scan` prints "ready" only on the single poll that actually collects the
+  # signature — every later poll reports "nothing new", the token no longer
+  # being pending — so matching on its stdout gets exactly one chance, and
+  # missing it costs the full 100s wait with the token already spendable.
+  # (Observed on a live testnet run: the token went ready early and the loop
+  # still ran to …100.) Wallet state is idempotent to read and stays true, so
+  # a missed poll simply resolves on the next one.
+  if $CLIENT status 2>/dev/null | grep -qE "spendable: [1-9]"; then
     break
   fi
   printf '    …%d\n' $((attempt * 5))
