@@ -1,0 +1,4 @@
+{
+  "_comment": "Placeholder for whatever list the operator is obliged to honour (OFAC SDN, an internal risk list, a chain-analytics feed). scripts/demo-denied.sh adds an address here to show the gate refusing a deposit.",
+  "blocked": []
+}
