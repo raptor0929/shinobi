@@ -245,15 +245,27 @@ permanent one, so those are always retried.
 | Denomination | 1 XLM |
 | WASM | 12,236 bytes |
 
-Two full deposit → screen → announce → scan → redeem cycles ran end to end.
+Three full deposit → screen → announce → scan → redeem cycles ran end to end.
 Alice deposited 1 XLM, the mint screened her against the denylist and signed,
 and each time a **brand-new account** received exactly 1 XLM — submitted by a
 relayer, with nothing on chain connecting it to Alice:
 
-| Cycle | Recipient | Redeem tx |
-|---|---|---|
-| 1 | `GDTJK2U4…` | [`5a63931d…`](https://stellar.expert/explorer/testnet/tx/5a63931d6c784c597a0d11179e6cf06cf5193af17494fbfae3db8b687071b210) |
-| 2 | `GAMQSJSF…` | [`236858a5…`](https://stellar.expert/explorer/testnet/tx/236858a5dd0db7525df30304d0a1f2930ec6727217aff9169c3be93b29f183af) |
+| Cycle | Recipient | Created by | Redeem tx |
+|---|---|---|---|
+| 1 | `GDTJK2U4…` | friendbot | [`5a63931d…`](https://stellar.expert/explorer/testnet/tx/5a63931d6c784c597a0d11179e6cf06cf5193af17494fbfae3db8b687071b210) |
+| 2 | `GAMQSJSF…` | friendbot | [`236858a5…`](https://stellar.expert/explorer/testnet/tx/236858a5dd0db7525df30304d0a1f2930ec6727217aff9169c3be93b29f183af) |
+| 3 | `GB4ZYWZD…` | `cpp-sponsor` | [`0561cbdd…`](https://stellar.expert/explorer/testnet/tx/0561cbddbc3cf7f46c3b4f0d98da2f7ddecfe23cad122c764b0a3fb5dcc3b681) |
+
+Cycle 3 is the first run under the shared sponsor. Its recipient's *entire*
+operation history is four entries — `begin_sponsoring_future_reserves`,
+`create_account`, `end_sponsoring_future_reserves`, then the redeem — so the
+account went from a `0` balance to exactly `1.0000000` XLM, and Alice appears
+on none of them. Horizon reports `sponsor` as the sponsor account rather than
+the `none` that friendbot leaves behind.
+
+Verified on chain after that cycle: `deposit_status` is `Announced`, `is_spent`
+is `true`, and the `Depositor` entry for the deposit id is **absent** — deleted
+by `announce`, which is what drops the funder↔slot link.
 
 Replaying a spent token was rejected by the contract with `AlreadySpent`
 (error #7), and the wallet's `recover` command rebuilt a token's spendable
