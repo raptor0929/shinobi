@@ -99,8 +99,9 @@ export async function isSpent(nullifier: Uint8Array): Promise<boolean> {
   return (await simulateView("is_spent", [bytesArg(nullifier)])) as boolean;
 }
 
-export async function getAnnounceEvents(
+export async function getVaultEvents(
   startLedger: number,
+  eventName: "announce" | "deposit",
 ): Promise<{ events: VaultEvent[]; nextLedger: number }> {
   const cfg = publicConfig();
   const s = server();
@@ -111,7 +112,7 @@ export async function getAnnounceEvents(
     {
       type: "contract" as const,
       contractIds: [cfg.vaultId],
-      topics: [[xdr.ScVal.scvSymbol("announce").toXDR("base64"), "*"]],
+      topics: [[xdr.ScVal.scvSymbol(eventName).toXDR("base64"), "*"]],
     },
   ];
 
@@ -149,6 +150,78 @@ export async function getAnnounceEvents(
   }
 
   return { events, nextLedger: scannedThrough + 1 };
+}
+
+export async function getAnnounceEvents(startLedger: number) {
+  return getVaultEvents(startLedger, "announce");
+}
+
+export async function getDepositEvents(startLedger: number) {
+  return getVaultEvents(startLedger, "deposit");
+}
+
+/** Read Depositor(deposit_id) while status is Pending. */
+export async function getDepositor(depositId: Uint8Array): Promise<string | null> {
+  const cfg = publicConfig();
+  const s = server();
+  const key = xdr.ScVal.scvVec([
+    xdr.ScVal.scvSymbol("Depositor"),
+    xdr.ScVal.scvBytes(Buffer.from(depositId)),
+  ]);
+  try {
+    const entry = await s.getContractData(
+      cfg.vaultId,
+      key,
+      rpc.Durability.Persistent,
+    );
+    const value = entry.val.contractData().val();
+    return String(scValToNative(value));
+  } catch {
+    return null;
+  }
+}
+
+/** Server-side signed invoke (mint announce, etc.). */
+export async function invokeSigned(opts: {
+  signerSecret: string;
+  method: string;
+  args: xdr.ScVal[];
+}): Promise<string> {
+  const { Keypair } = await import("@stellar/stellar-sdk");
+  const cfg = publicConfig();
+  const s = server();
+  const signer = Keypair.fromSecret(opts.signerSecret);
+  const account = await s.getAccount(signer.publicKey());
+  const tx = new TransactionBuilder(account, {
+    fee: BASE_FEE,
+    networkPassphrase: cfg.networkPassphrase,
+  })
+    .addOperation(contract().call(opts.method, ...opts.args))
+    .setTimeout(TX_TIMEOUT)
+    .build();
+
+  const sim = await s.simulateTransaction(tx);
+  if (rpc.Api.isSimulationError(sim)) {
+    throw new Error(`${opts.method} would fail: ${sim.error}`);
+  }
+  const prepared = rpc.assembleTransaction(tx, sim).build();
+  prepared.sign(signer);
+  const sent = await s.sendTransaction(prepared);
+  if (sent.status === "ERROR") {
+    throw new Error(`${opts.method} rejected: ${JSON.stringify(sent.errorResult)}`);
+  }
+  const final = await s.pollTransaction(sent.hash, {
+    attempts: 40,
+    sleepStrategy: rpc.LinearSleepStrategy,
+  });
+  if (final.status !== rpc.Api.GetTransactionStatus.SUCCESS) {
+    throw new Error(`${opts.method} failed on chain (${final.status}): ${sent.hash}`);
+  }
+  return sent.hash;
+}
+
+export function announceArgs(depositId: Uint8Array, sPrime: Uint8Array) {
+  return [bytesArg(depositId), bytesArg(sPrime)];
 }
 
 export async function prepareContractInvoke(opts: {

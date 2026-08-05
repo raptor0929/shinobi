@@ -36,6 +36,34 @@ _Avoid_: Sozu / Sozu Capital / Sozu Wallet branding in UI, metadata, or demo cop
 v1 uses institutional payroll only as landing/story copy. The interactive product is still one **Shielded Transfer** at a time (fixed vault denomination).
 _Avoid_: HR CSV upload; multi-employee batch send in v1; implying the vault natively batches payroll
 
+**Payroll Path**:
+Main Demo FE surface for the presenter: treasury/business-owner verbs, one wizard step at a time, minimal chain jargon.
+_Avoid_: Freighter / nullifier / announce as primary labels on this path
+
+**Logs Panel**:
+Side explainer layer: titled **Logs**; narrates blind-signature / chain detail while the **Payroll Path** stays plain. Auto-scrolls to latest unless the user scrolls up.
+_Avoid_: putting crypto lecture copy in the main wizard; renaming this “Verbose Demo Log” in the UI
+
+**Ninja Mode**:
+Default dark visual theme for the Demo FE.
+_Avoid_: light-first as the demo default
+
+**Payroll Steps**:
+The five **Payroll Path** wizard beats: (1) Save recovery key (2) Connect & deposit (3) Compliance check (4) Pay employee (5) Show proof.
+_Avoid_: Freighter / Token Seed / Pending Announce / Relayer as the primary step titles
+
+**Log Line**:
+One **Logs Panel** entry: plain-language **headline** (what it means for payroll/privacy) plus optional quieter mono **detail** (hashes, ids, Freighter).
+_Avoid_: raw RPC-only lines with no headline; dumping lectures into the wizard
+
+**Auto-Advance**:
+**Payroll Path** moves forward when the chain (or required user decision) completes — backup confirm, deposit success, announce, redeem success. No mandatory Next between those beats.
+_Avoid_: clicking Next after every background poll tick
+
+**Recovery Key UX**:
+Wizard shows a truncated recovery key with **Copy** (and optional reveal); full hex is echoed in the **Logs Panel**. Backup checkbox still gates deposit.
+_Avoid_: full hex wall as the only presentation on the **Payroll Path**
+
 **SDP Batch** *(later)*:
 Future gap-fill: use the Stellar Disbursement Platform (SDP) for real multi-recipient payroll batches. Explicit technical debt relative to the payroll story — not built in this demo.
 _Avoid_: pretending v1 already does batch payroll; inventing a custom batch layer before SDP
@@ -77,8 +105,8 @@ Before redeem, the UI states that redeeming soon after deposit weakens unlinkabi
 _Avoid_: silent instant redeem with no warning; a mandatory delay that blocks a live talk
 
 **Vercel Deploy**:
-Host the **Demo Stack** on Vercel (testnet env secrets for Sponsor/Relayer). **Off-App Mint** stays a separate operator process, not on Vercel.
-_Avoid_: localhost-only stage demos as the primary plan; shipping mint authority keys in the Vercel project
+Host the **Demo Stack** on Vercel (testnet env for Sponsor/Relayer and optional **Compliance Tick** mint secrets). Long-lived Off-App Mint remains optional when the tick is configured.
+_Avoid_: localhost-only as the only demo plan; putting mint secrets in client-side `NEXT_PUBLIC_*`
 
 **Unlinkability Proof**:
 Post-redeem mic-drop: three claims with Stellar Expert (testnet) deep links — (1) recipient history has no depositor, (2) redeem fee payer is the **Demo Relayer**, (3) nullifier spent / deposit finished. Echoed in the **Verbose Demo Log**.
@@ -89,8 +117,12 @@ v1 Demo FE shape: one user path — backup seed → deposit → wait for Mint an
 _Avoid_: three-panel Alice|Mint|Bob stage UI in v1; Mint dashboard as the primary surface
 
 **Off-App Mint**:
-The Mint daemon runs outside the Demo FE (upstream CLI / operator process). The FE only observes on-chain `announce` (or offers `refund` if declined).
-_Avoid_: calling a Mint HTTP API; embedding mint keys in the browser
+The long-lived Mint daemon outside the Demo FE. Optional for demos when **Compliance Tick** is configured.
+_Avoid_: calling a Mint HTTP API from the browser with mint secrets; embedding mint keys in client JS
+
+**Compliance Tick**:
+One-shot server action (`/api/mint/tick`) that announces a pending deposit for the demo — used via **Run compliance** on the Compliance step. Needs mint env on the server (local or Vercel testnet).
+_Avoid_: treating this as production screening infrastructure
 
 **Recipient Address**:
 Where redeemed funds land — typed or pasted by the depositor (demo preset allowed). Not a second authenticated session in v1.
@@ -146,6 +178,7 @@ _Avoid_: depositor-funded `create_account`; making sponsor the only redeem path
 - **Token Seed** is gated by **Backup Gate**, optionally kept in **Local Seed Cache**, and restorable via **Seed Recovery**
 - Redeem targets a **Demo Recipient Preset** by default, or a **Sponsored Recipient** when showing virgin-account unlinkability
 - **Payroll Framing** explains why institutions care; **SDP Batch** is the later path for multi-recipient disbursement
+- **Payroll Path** is the wizard; **Logs Panel** is the explainer; default look is **Ninja Mode**
 - **Upstream Client** supplies the crypto the **Vault** verifies; Demo FE adapters wrap Freighter, seed UX, Sponsor, and Relayer
 - **Demo Stack** hosts the Depositor Flow UI and demo API routes in one Next.js app
 - **Testnet Demo** uses **Demo Fixtures**; economics come from vault `config()`
@@ -214,6 +247,7 @@ _Avoid_: depositor-funded `create_account`; making sponsor the only redeem path
 - Seed: **Token Seed** + **Backup Gate** + **Local Seed Cache** + **Seed Recovery** — resolved.
 - Recipient: **Demo Recipient Preset** primary, **Sponsored Recipient** optional — resolved.
 - Payroll: **Payroll Framing** in v1; **SDP Batch** deferred debt — resolved.
+- Demo UX polish: **Payroll Path** wizard (5 **Payroll Steps**) + **Logs Panel** explainer (**Log Line** headline+detail) + **Ninja Mode** + **Auto-Advance** — resolved for polish pass.
 - Crypto: Git-pinned **Upstream Client** (`@cpp/client`) — resolved in ADR [`0003-upstream-client-pin`](./docs/adr/0003-upstream-client-pin.md).
 - Stack: **Demo Stack** = Next.js App Router + TS + Tailwind — resolved.
 - Network: **Testnet Demo** + **Demo Fixtures** (vault / origin / mint / destination) — resolved.

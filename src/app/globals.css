@@ -1,17 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #101820;
-  --ink-muted: #4a5a52;
-  --paper: #eef2ef;
-  --paper-2: #e2e8e4;
-  --line: #b8c4bc;
-  --accent: #0b6e4f;
-  --accent-deep: #084c37;
-  --ok: #0b6e4f;
-  --warn: #8a6d1d;
-  --err: #9b2c2c;
-  --glow: rgba(11, 110, 79, 0.16);
+  /* Ninja Mode — dark default */
+  --ink: #e8efe9;
+  --ink-muted: #8a9a90;
+  --paper: #0c1110;
+  --paper-2: #141c19;
+  --line: #24302b;
+  --accent: #3dd68c;
+  --accent-deep: #2bb573;
+  --ok: #3dd68c;
+  --warn: #e0b34d;
+  --err: #f07178;
+  --glow: rgba(61, 214, 140, 0.14);
+  --panel: rgba(20, 28, 25, 0.88);
+  --panel-active: rgba(24, 36, 31, 0.96);
 }
 
 @theme inline {
@@ -30,10 +33,7 @@
 }
 
 body {
-  background:
-    radial-gradient(1100px 520px at 8% -8%, var(--glow), transparent 55%),
-    radial-gradient(800px 420px at 100% 10%, rgba(16, 24, 32, 0.06), transparent 45%),
-    linear-gradient(165deg, #f4f7f5 0%, var(--paper) 40%, #dde5e0 100%);
+  background: var(--paper);
   color: var(--ink);
   font-family: var(--font-display), Georgia, serif;
 }

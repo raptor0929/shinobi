@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "smoke:no-mint": "node scripts/smoke-no-mint.mjs"
   },
   "dependencies": {
     "@cpp/client": "file:vendor/cpp-client",
