@@ -1,0 +1,5 @@
+PINNED_SHA=640f8a14d911a356444f3f1f697a9d33147fef93
+SOURCE=https://github.com/raptor0929/shinobi/tree/640f8a14d911a356444f3f1f697a9d33147fef93/ts
+
+Local delta vs upstream:
+- crypto.ts toHex/fromHex use Uint8Array hex loops (no Node Buffer) for browser bundling.
