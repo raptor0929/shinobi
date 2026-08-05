@@ -1,6 +1,6 @@
 # shinobi-demo
 
-Demo front-end for the [Shinobi Compliant Privacy Pool](https://github.com/raptor0929/shinobi) on Stellar testnet.
+Demo front-end for **Shinobi** — Compliant Privacy Pool for institutional payroll — on Stellar testnet.
 
 Shows a simple **Shielded Transfer**: deposit into the vault → mint compliance announce → redeem to an unlinkable recipient.
 
@@ -17,3 +17,4 @@ Scaffold — domain language in [`CONTEXT.md`](./CONTEXT.md). UI work follows gr
 
 - [`CONTEXT.md`](./CONTEXT.md) — domain language
 - [`docs/adr/0001-fe-only-demo-repo.md`](./docs/adr/0001-fe-only-demo-repo.md) — why a separate FE repo
+- [`docs/adr/0002-demo-sponsor-relayer.md`](./docs/adr/0002-demo-sponsor-relayer.md) — in-repo sponsor + relayer
