@@ -16,6 +16,8 @@ Status: working end-to-end on testnet. 50 Rust tests, 66 TypeScript tests.
 Design notes and diagrams live in [`docs/architecture.md`](./docs/architecture.md);
 building a UI on top of a deployed vault is covered in
 [`docs/frontend-integration.md`](./docs/frontend-integration.md).
+[`docs/benchmark.md`](./docs/benchmark.md) measures this design against a
+Groth16 privacy pool on the same host.
 
 ---
 
