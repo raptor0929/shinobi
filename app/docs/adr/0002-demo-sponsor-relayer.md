@@ -1,0 +1,3 @@
+# In-repo Demo Sponsor + Demo Relayer
+
+A browser Depositor Flow cannot finish a correct Shielded Transfer without HTTP surfaces for sponsorship and fee-paid redemption — upstream ships those only as CLI tools holding secrets. Putting sponsor/relayer in a separate infra repo is overkill for a testnet demo; driving redeem from a terminal mid-talk weakens the “simple FE” story. **Decision:** ship thin Next.js (or equivalent) API routes in `shinobi-demo` for Demo Sponsor and Demo Relayer, env-backed testnet keys only, following upstream privacy constraints (no seed/blinding on the server; sponsor must not take `deposit_id`; minimize IP↔nullifier logging). Not a production custody design.
