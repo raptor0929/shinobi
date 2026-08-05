@@ -18,7 +18,9 @@ Design notes and diagrams live in [`docs/architecture.md`](./docs/architecture.m
 building a UI on top of a deployed vault is covered in
 [`docs/frontend-integration.md`](./docs/frontend-integration.md).
 [`docs/benchmark.md`](./docs/benchmark.md) measures this design against a
-Groth16 privacy pool on the same host.
+Groth16 privacy pool on the same host, and
+[`docs/comparison.md`](./docs/comparison.md) compares the two on denomination,
+partial withdrawals, cost, speed, and security.
 
 ---
 
@@ -105,6 +107,8 @@ ts/src/
 docs/
   architecture.md          components, lifecycle, trust boundaries, diagrams
   frontend-integration.md  building a web UI against a deployed vault
+  benchmark.md             measured CPU cost vs a Groth16 pool, with probe code
+  comparison.md            denomination, partial withdrawals, cost, speed, security
 
 SEP-DRAFT.md       the draft SEP — renamed to sep_blindsignaturevault.md
                    when submitted, per the ecosystem repo's convention
