@@ -31,7 +31,7 @@
 //! The mint signs `B` without ever seeing `Y`, so it cannot link the deposit it
 //! signed to the redemption it later settles. Compliance is enforced at ingress
 //! — the mint screens the *depositor*, whose identity is public on chain anyway
-//! — while the *recipient* stays unlinkable. See `sep_blindsignaturevault.md`.
+//! — while the *recipient* stays unlinkable. See `SEP-DRAFT.md`.
 //!
 //! ## What the vault trusts
 //!

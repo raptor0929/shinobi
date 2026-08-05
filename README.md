@@ -7,9 +7,9 @@ giving the operator a real compliance gate at the entrance.
 It is a port of the [nozkash](../nozkash) EVM vault to Stellar. The port is not
 a translation: Soroban's BLS12-381 host functions make it **smaller, cheaper,
 and simpler than the original**, and that is the point of the proposal in
-[`sep_blindsignaturevault.md`](./sep_blindsignaturevault.md) — a draft SEP,
-titled for the interface rather than for this implementation, and named per the
-`sep_{shorttitle}.md` convention the ecosystem repo expects from submissions.
+[**`SEP-DRAFT.md`**](./SEP-DRAFT.md) — a complete draft Stellar Ecosystem
+Proposal, titled *Blind Signature Transfer Vault*, ready to submit to
+[`stellar/stellar-protocol`](https://github.com/stellar/stellar-protocol).
 
 Status: working end-to-end on testnet. 50 Rust tests, 66 TypeScript tests.
 
@@ -102,6 +102,9 @@ ts/src/
 docs/
   architecture.md          components, lifecycle, trust boundaries, diagrams
   frontend-integration.md  building a web UI against a deployed vault
+
+SEP-DRAFT.md       the draft SEP — renamed to sep_blindsignaturevault.md
+                   when submitted, per the ecosystem repo's convention
 ```
 
 ### Testing strategy worth knowing about

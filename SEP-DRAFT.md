@@ -11,13 +11,17 @@ Version: 0.1.0
 Discussion: <opened before submission at https://github.com/orgs/stellar/discussions>
 ```
 
-> **Editorial note, to be removed before submission.** The SEP number is left as
-> `To Be Assigned` deliberately: the ecosystem README instructs authors not to
-> self-assign, reference, or request one. This file is named `sep_blindsignaturevault.md`
-> per the `sep_{shorttitle}.md` draft convention, and `ecosystem/README.md` is
-> not to be edited in the submitting PR — a maintainer adds both the number and
-> the index row on merge. The `Discussion` link must be filled in with a real
-> GitHub Discussion URL before the PR is opened.
+> **Editorial note, to be removed before submission.** This file is `SEP-DRAFT.md`
+> in the reference implementation's repository, where the audience is someone
+> reading the project. When submitted to `stellar/stellar-protocol` it must be
+> **renamed to `sep_blindsignaturevault.md`**, per the `sep_{shorttitle}.md`
+> convention that repository expects from drafts.
+>
+> The SEP number is left as `To Be Assigned` deliberately: the ecosystem README
+> instructs authors not to self-assign, reference, or request one. Nor should
+> `ecosystem/README.md` be edited in the submitting PR — a maintainer adds both
+> the number and the index row on merge. The `Discussion` link must be filled in
+> with a real GitHub Discussion URL before the PR is opened.
 >
 > The reference implementation is named **CPP (Compliant Privacy Pool)**. The
 > title here describes the interface rather than the implementation, following
