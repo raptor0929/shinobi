@@ -9,10 +9,10 @@ denomination, withdraw it later to an unrelated address with no on-chain link
 between the two, while the operator still screens depositors at the entrance.
 
 The primitive is a **Chaum blind signature over BLS12-381**, not a ZK proof —
-there is no circuit, no trusted setup, no Merkle tree. It is a port of the
-`../nozkash` EVM vault; `SEP-DRAFT.md` is the standards proposal that came out
-of it. `docs/` holds the architecture write-up and the frontend integration
-guide — both are judged deliverables, so keep them true rather than tidy.
+there is no circuit, no trusted setup, no Merkle tree. `SEP-DRAFT.md` is the
+standards proposal that came out of it. `docs/` holds the architecture write-up,
+the frontend integration guide, the cost benchmark and the comparison against a
+ZK pool — all judged deliverables, so keep them true rather than tidy.
 
 ## Commands
 

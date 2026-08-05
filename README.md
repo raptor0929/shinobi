@@ -4,11 +4,12 @@ A Soroban vault that lets you deposit a fixed amount and later withdraw it to an
 unrelated address, with **no on-chain link between the two** — while still
 giving the operator a real compliance gate at the entrance.
 
-It is a port of the [nozkash](../nozkash) EVM vault to Stellar. The port is not
-a translation: Soroban's BLS12-381 host functions make it **smaller, cheaper,
-and simpler than the original**, and that is the point of the proposal in
-[**`SEP-DRAFT.md`**](./SEP-DRAFT.md) — a complete draft Stellar Ecosystem
-Proposal, titled *Blind Signature Transfer Vault*, ready to submit to
+Screening happens at the **entrance**, where the depositor's address is public
+anyway, so the anonymity set holds only funds that were already cleared — and
+nothing on chain, or known to the operator, links a redemption back to its
+deposit. [**`SEP-DRAFT.md`**](./SEP-DRAFT.md) is the standards proposal that came
+out of it: a complete draft Stellar Ecosystem Proposal, titled *Blind Signature
+Transfer Vault*, ready to submit to
 [`stellar/stellar-protocol`](https://github.com/stellar/stellar-protocol).
 
 Status: working end-to-end on testnet. 50 Rust tests, 66 TypeScript tests.
